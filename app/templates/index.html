@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EduFlow — AI Course Platform</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#1e3a8a;--blue:#2563eb;--blue2:#1d4ed8;--light:#eff6ff;
+  --green:#16a34a;--green-l:#f0fdf4;--red:#dc2626;--red-l:#fef2f2;
+  --amber:#d97706;--amber-l:#fffbeb;--purple:#7c3aed;--purple-l:#f5f3ff;
+  --gray:#64748b;--border:#e2e8f0;--bg:#f1f5f9;--white:#fff;--text:#1e293b;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* NAV */
+nav{background:var(--navy);color:#fff;height:60px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:100}
+.nav-brand{font-size:20px;font-weight:700;letter-spacing:-.3px}.nav-brand span{color:#93c5fd}
+.nav-right{display:flex;align-items:center;gap:12px}
+#nav-user{font-size:13px;color:#cbd5e1}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all .15s;text-decoration:none}
+.btn-sm{padding:5px 12px;font-size:12px}
+.btn-primary{background:var(--blue);color:#fff}.btn-primary:hover{background:var(--blue2)}
+.btn-outline{background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.4)}.btn-outline:hover{background:rgba(255,255,255,.1)}
+.btn-danger{background:var(--red-l);color:var(--red)}.btn-danger:hover{background:#fecaca}
+.btn-green{background:var(--green-l);color:var(--green)}.btn-green:hover{background:#bbf7d0}
+.btn-purple{background:var(--purple-l);color:var(--purple)}.btn-purple:hover{background:#ede9fe}
+
+/* PAGES */
+.page{display:none;padding:28px}.page.active{display:block}
+
+/* AUTH */
+.auth-wrap{max-width:420px;margin:60px auto}
+.auth-card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:36px}
+.auth-card h2{font-size:22px;font-weight:700;color:var(--navy);margin-bottom:6px}
+.auth-card p{color:var(--gray);font-size:14px;margin-bottom:24px}
+.tabs{display:flex;gap:0;margin-bottom:24px;border-bottom:2px solid var(--border)}
+.tab-btn{padding:10px 20px;font-size:14px;font-weight:500;cursor:pointer;border:none;background:none;color:var(--gray);border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s}
+.tab-btn.active{color:var(--blue);border-bottom-color:var(--blue)}
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:13px;font-weight:500;color:#374151;margin-bottom:5px}
+.form-group input,.form-group select{width:100%;padding:10px 13px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;outline:none;transition:border .15s;background:#f9fafb}
+.form-group input:focus,.form-group select:focus{border-color:var(--blue);background:#fff}
+.form-full{width:100%;margin-top:4px}
+.error-msg{color:var(--red);font-size:12px;margin-top:8px;display:none}
+
+/* DASHBOARD */
+.page-header{margin-bottom:24px}
+.page-header h1{font-size:24px;font-weight:700;color:var(--navy)}
+.page-header p{color:var(--gray);font-size:14px;margin-top:3px}
+
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:28px}
+.stat-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px 20px}
+.stat-val{font-size:28px;font-weight:700;color:var(--navy)}
+.stat-lbl{font-size:12px;color:var(--gray);margin-top:2px}
+.stat-card.blue{border-top:3px solid var(--blue)}
+.stat-card.green{border-top:3px solid var(--green)}
+.stat-card.amber{border-top:3px solid var(--amber)}
+.stat-card.purple{border-top:3px solid var(--purple)}
+
+/* COURSE GRID */
+.courses-toolbar{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;align-items:center}
+.search-box{flex:1;min-width:200px;padding:9px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;outline:none}
+.search-box:focus{border-color:var(--blue)}
+.filter-sel{padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;background:#fff;outline:none;cursor:pointer}
+
+.courses-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.course-card{background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:all .2s;cursor:pointer}
+.course-card:hover{border-color:var(--blue);transform:translateY(-2px);box-shadow:0 4px 20px rgba(37,99,235,.1)}
+.course-thumb{height:130px;display:flex;align-items:center;justify-content:center;font-size:36px}
+.thumb-prog{background:linear-gradient(135deg,#1e3a8a,#2563eb)}
+.thumb-web{background:linear-gradient(135deg,#065f46,#059669)}
+.thumb-ai{background:linear-gradient(135deg,#4c1d95,#7c3aed)}
+.thumb-data{background:linear-gradient(135deg,#92400e,#d97706)}
+.thumb-db{background:linear-gradient(135deg,#991b1b,#dc2626)}
+.thumb-devops{background:linear-gradient(135deg,#1e40af,#3b82f6)}
+.thumb-other{background:linear-gradient(135deg,#374151,#6b7280)}
+.course-body{padding:16px}
+.course-title{font-size:15px;font-weight:600;color:var(--navy);margin-bottom:6px;line-height:1.3}
+.course-desc{font-size:12px;color:var(--gray);line-height:1.5;margin-bottom:10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.course-meta{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.badge{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:500}
+.badge-blue{background:var(--light);color:var(--blue)}
+.badge-green{background:var(--green-l);color:var(--green)}
+.badge-amber{background:var(--amber-l);color:var(--amber)}
+.badge-purple{background:var(--purple-l);color:var(--purple)}
+.badge-free{background:#dcfce7;color:#15803d}
+.course-footer{display:flex;align-items:center;justify-content:space-between}
+.course-price{font-size:15px;font-weight:700;color:var(--navy)}
+.course-rating{font-size:12px;color:var(--amber)}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal{background:#fff;border-radius:16px;padding:28px;max-width:640px;width:90%;max-height:85vh;overflow-y:auto;position:relative}
+.modal-close{position:absolute;top:14px;right:16px;background:none;border:none;font-size:20px;cursor:pointer;color:var(--gray)}
+.modal h2{font-size:20px;font-weight:700;color:var(--navy);margin-bottom:6px}
+.modal-meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.modal-desc{font-size:14px;color:var(--gray);line-height:1.6;margin-bottom:16px}
+.ai-box{background:var(--purple-l);border:1px solid #ddd6fe;border-radius:10px;padding:14px;margin-bottom:16px}
+.ai-box h4{font-size:13px;font-weight:600;color:var(--purple);margin-bottom:8px}
+.ai-outcomes{list-style:none;padding:0}
+.ai-outcomes li{font-size:13px;color:#4c1d95;padding:3px 0;display:flex;gap:8px}
+.ai-outcomes li::before{content:'✓';color:var(--green);font-weight:700}
+.modules-list{margin-top:16px}
+.module-item{border:1px solid var(--border);border-radius:8px;margin-bottom:8px;overflow:hidden}
+.module-header{padding:11px 14px;background:#f8fafc;font-size:14px;font-weight:500;display:flex;align-items:center;gap:8px}
+.lesson-item{padding:9px 14px 9px 28px;border-top:1px solid #f1f5f9;font-size:13px;color:var(--gray);display:flex;align-items:center;justify-content:space-between}
+.lesson-item .dur{font-size:11px;color:var(--gray)}
+
+/* PROGRESS BAR */
+.progress-wrap{background:var(--border);border-radius:99px;height:6px;margin:8px 0}
+.progress-bar{background:var(--blue);height:6px;border-radius:99px;transition:width .4s}
+
+/* SIDEBAR LAYOUT */
+.dash-layout{display:grid;grid-template-columns:220px 1fr;gap:20px}
+.sidebar{background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px;height:fit-content}
+.sidebar-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;font-size:14px;cursor:pointer;color:var(--gray);transition:all .15s;margin-bottom:2px}
+.sidebar-item:hover,.sidebar-item.active{background:var(--light);color:var(--blue);font-weight:500}
+.sidebar-icon{font-size:16px}
+
+/* MY COURSES */
+.my-course-card{background:#fff;border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:10px;display:flex;align-items:center;gap:16px}
+.my-course-icon{width:48px;height:48px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.my-course-info{flex:1}
+.my-course-title{font-size:15px;font-weight:600;color:var(--navy)}
+.my-course-meta{font-size:12px;color:var(--gray);margin-top:2px}
+
+/* AI SUMMARY BTN */
+.ai-generate-btn{background:var(--purple-l);color:var(--purple);border:1.5px solid #c4b5fd;border-radius:8px;padding:9px 16px;font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .15s}
+.ai-generate-btn:hover{background:#ede9fe}
+.ai-generate-btn.loading{opacity:.6;pointer-events:none}
+
+.toast{position:fixed;bottom:24px;right:24px;background:#1e293b;color:#fff;padding:12px 20px;border-radius:8px;font-size:14px;opacity:0;transform:translateY(10px);transition:all .25s;z-index:999;pointer-events:none}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast.success{background:var(--green)}
+.toast.error{background:var(--red)}
+
+.empty{text-align:center;padding:60px;color:var(--gray)}
+.empty p{margin-top:8px;font-size:15px}
+.loading-spin{text-align:center;padding:40px;color:var(--gray);font-size:14px}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-brand">Edu<span>Flow</span></div>
+  <div class="nav-right">
+    <span id="nav-user"></span>
+    <button class="btn btn-outline btn-sm" onclick="showPage('courses-page')" id="nav-explore" style="display:none">Explore Courses</button>
+    <button class="btn btn-outline btn-sm" onclick="showPage('dashboard-page')" id="nav-dash" style="display:none">Dashboard</button>
+    <button class="btn btn-outline btn-sm" onclick="logout()" id="nav-logout" style="display:none">Logout</button>
+  </div>
+</nav>
+
+<!-- AUTH PAGE -->
+<div class="page active" id="auth-page">
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <h2>Welcome to EduFlow</h2>
+      <p>AI-powered course platform — learn, track, grow.</p>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('login')">Login</button>
+        <button class="tab-btn" onclick="switchTab('register')">Register</button>
+      </div>
+
+      <!-- LOGIN -->
+      <div id="login-form">
+        <div class="form-group"><label>Email</label><input type="email" id="l-email" placeholder="admin@eduflow.com" value="admin@eduflow.com"></div>
+        <div class="form-group"><label>Password</label><input type="password" id="l-pass" placeholder="password" value="admin123"></div>
+        <p style="font-size:12px;color:var(--gray);margin-bottom:12px">Demo: admin / satwik@eduflow.com:satwik123 / student@eduflow.com:student123</p>
+        <div class="error-msg" id="l-error"></div>
+        <button class="btn btn-primary form-full" onclick="login()">Login →</button>
+      </div>
+
+      <!-- REGISTER -->
+      <div id="register-form" style="display:none">
+        <div class="form-group"><label>Full Name</label><input type="text" id="r-name" placeholder="Your name"></div>
+        <div class="form-group"><label>Email</label><input type="email" id="r-email" placeholder="you@example.com"></div>
+        <div class="form-group"><label>Password</label><input type="password" id="r-pass" placeholder="Min 6 characters"></div>
+        <div class="form-group"><label>Role</label>
+          <select id="r-role">
+            <option value="student">Student</option>
+            <option value="instructor">Instructor</option>
+          </select>
+        </div>
+        <div class="error-msg" id="r-error"></div>
+        <button class="btn btn-primary form-full" onclick="register()">Create Account →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- COURSES PAGE -->
+<div class="page" id="courses-page">
+  <div class="page-header">
+    <h1>Explore Courses</h1>
+    <p>Browse and enroll in courses — use filters to find what you need</p>
+  </div>
+  <div class="courses-toolbar">
+    <input class="search-box" id="search-q" placeholder="Search courses..." oninput="debounce(loadCourses,400)()">
+    <select class="filter-sel" id="filter-cat" onchange="loadCourses()">
+      <option value="">All Categories</option>
+      <option value="programming">Programming</option>
+      <option value="web_development">Web Development</option>
+      <option value="ai_ml">AI & ML</option>
+      <option value="data_science">Data Science</option>
+      <option value="database">Database</option>
+      <option value="devops">DevOps</option>
+    </select>
+    <select class="filter-sel" id="filter-lvl" onchange="loadCourses()">
+      <option value="">All Levels</option>
+      <option value="beginner">Beginner</option>
+      <option value="intermediate">Intermediate</option>
+      <option value="advanced">Advanced</option>
+    </select>
+    <select class="filter-sel" id="filter-sort" onchange="loadCourses()">
+      <option value="newest">Newest</option>
+      <option value="rating">Top Rated</option>
+      <option value="price_asc">Price: Low→High</option>
+      <option value="price_desc">Price: High→Low</option>
+    </select>
+  </div>
+  <div id="courses-grid" class="courses-grid"><div class="loading-spin">Loading courses...</div></div>
+  <div id="pagination" style="text-align:center;margin-top:20px"></div>
+</div>
+
+<!-- DASHBOARD PAGE -->
+<div class="page" id="dashboard-page">
+  <div class="dash-layout">
+    <div class="sidebar">
+      <div class="sidebar-item active" id="sb-overview" onclick="showDash('overview')"><span class="sidebar-icon">📊</span> Overview</div>
+      <div class="sidebar-item" id="sb-my-courses" onclick="showDash('my-courses')"><span class="sidebar-icon">📚</span> My Courses</div>
+      <div class="sidebar-item" id="sb-analytics" onclick="showDash('analytics')" id="sb-analytics-item" style="display:none"><span class="sidebar-icon">📈</span> Analytics</div>
+      <div class="sidebar-item" id="sb-create" onclick="showDash('create-course')" id="sb-create-item" style="display:none"><span class="sidebar-icon">➕</span> Create Course</div>
+    </div>
+
+    <div>
+      <!-- OVERVIEW -->
+      <div id="dash-overview">
+        <div class="page-header"><h1 id="dash-greeting">Welcome back!</h1><p id="dash-role-label"></p></div>
+        <div class="stats-grid" id="stats-grid"></div>
+        <div id="top-courses-section"></div>
+      </div>
+
+      <!-- MY COURSES -->
+      <div id="dash-my-courses" style="display:none">
+        <div class="page-header"><h1>My Courses</h1><p>Your enrolled courses and progress</p></div>
+        <div id="my-courses-list"><div class="loading-spin">Loading...</div></div>
+      </div>
+
+      <!-- ANALYTICS -->
+      <div id="dash-analytics" style="display:none">
+        <div class="page-header"><h1>Platform Analytics</h1><p>Real-time platform statistics</p></div>
+        <div id="analytics-content"><div class="loading-spin">Loading...</div></div>
+      </div>
+
+      <!-- CREATE COURSE -->
+      <div id="dash-create-course" style="display:none">
+        <div class="page-header"><h1>Create New Course</h1><p>Fill in the details below</p></div>
+        <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:24px;max-width:600px">
+          <div class="form-group"><label>Course Title</label><input type="text" id="c-title" placeholder="e.g. Python for Backend Development"></div>
+          <div class="form-group"><label>Description</label><textarea id="c-desc" rows="3" style="width:100%;padding:10px 13px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;resize:vertical;outline:none;font-family:inherit" placeholder="What will students learn?"></textarea></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div class="form-group"><label>Category</label>
+              <select id="c-cat" style="width:100%;padding:10px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;outline:none">
+                <option value="programming">Programming</option>
+                <option value="web_development">Web Development</option>
+                <option value="ai_ml">AI & ML</option>
+                <option value="data_science">Data Science</option>
+                <option value="database">Database</option>
+                <option value="devops">DevOps</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div class="form-group"><label>Level</label>
+              <select id="c-level" style="width:100%;padding:10px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;outline:none">
+                <option value="beginner">Beginner</option>
+                <option value="intermediate">Intermediate</option>
+                <option value="advanced">Advanced</option>
+              </select>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div class="form-group"><label>Price (₹)</label><input type="number" id="c-price" placeholder="0 for free" value="0" min="0"></div>
+            <div class="form-group"><label>Publish?</label>
+              <select id="c-pub" style="width:100%;padding:10px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;outline:none">
+                <option value="true">Yes — publish now</option>
+                <option value="false">No — save as draft</option>
+              </select>
+            </div>
+          </div>
+          <div class="error-msg" id="c-error"></div>
+          <div style="display:flex;gap:10px;margin-top:8px">
+            <button class="btn btn-primary" onclick="createCourse()">Create Course</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- COURSE DETAIL MODAL -->
+<div class="modal-overlay" id="course-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div id="modal-content"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = '/api';
+let token = localStorage.getItem('ef_token') || '';
+let currentUser = JSON.parse(localStorage.getItem('ef_user') || 'null');
+let currentPage = 1;
+let debTimer;
+
+// ── UTILS ──────────────────────────────────────────────────
+function debounce(fn, ms) { return () => { clearTimeout(debTimer); debTimer = setTimeout(fn, ms); }; }
+
+async function api(path, opts = {}) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  const r = await fetch(API + path, { ...opts, headers });
+  const data = await r.json().catch(() => ({}));
+  return { ok: r.ok, status: r.status, data };
+}
+
+function toast(msg, type = 'success') {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.className = `toast show ${type}`;
+  setTimeout(() => el.className = 'toast', 2800);
+}
+
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if (id === 'courses-page') loadCourses();
+  if (id === 'dashboard-page') initDashboard();
+}
+
+function showError(id, msg) {
+  const el = document.getElementById(id);
+  el.textContent = msg; el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', 4000);
+}
+
+const thumbClass = cat => ({
+  programming:'thumb-prog', web_development:'thumb-web', ai_ml:'thumb-ai',
+  data_science:'thumb-data', database:'thumb-db', devops:'thumb-devops'
+}[cat] || 'thumb-other');
+
+const thumbEmoji = cat => ({
+  programming:'🐍', web_development:'🌐', ai_ml:'🤖',
+  data_science:'📊', database:'🗄️', devops:'⚙️'
+}[cat] || '📖');
+
+const levelColor = l => ({ beginner:'badge-green', intermediate:'badge-amber', advanced:'badge-purple' }[l] || 'badge-blue');
+
+// ── AUTH ───────────────────────────────────────────────────
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', (tab==='login'?i===0:i===1)));
+  document.getElementById('login-form').style.display    = tab === 'login' ? 'block' : 'none';
+  document.getElementById('register-form').style.display = tab === 'register' ? 'block' : 'none';
+}
+
+async function login() {
+  const email = document.getElementById('l-email').value.trim();
+  const pass  = document.getElementById('l-pass').value;
+  if (!email || !pass) return showError('l-error', 'Please fill in all fields');
+  const { ok, data } = await api('/auth/login', { method: 'POST', body: JSON.stringify({ email, password: pass }) });
+  if (!ok) return showError('l-error', data.message || 'Login failed');
+  token = data.access_token;
+  currentUser = data.user;
+  localStorage.setItem('ef_token', token);
+  localStorage.setItem('ef_user', JSON.stringify(currentUser));
+  onLogin();
+}
+
+async function register() {
+  const name  = document.getElementById('r-name').value.trim();
+  const email = document.getElementById('r-email').value.trim();
+  const pass  = document.getElementById('r-pass').value;
+  const role  = document.getElementById('r-role').value;
+  if (!name || !email || !pass) return showError('r-error', 'Please fill in all fields');
+  const { ok, data } = await api('/auth/register', { method: 'POST', body: JSON.stringify({ name, email, password: pass, role }) });
+  if (!ok) return showError('r-error', data.message || 'Registration failed');
+  token = data.access_token;
+  currentUser = data.user;
+  localStorage.setItem('ef_token', token);
+  localStorage.setItem('ef_user', JSON.stringify(currentUser));
+  onLogin();
+}
+
+function onLogin() {
+  document.getElementById('nav-user').textContent = `${currentUser.name} (${currentUser.role})`;
+  document.getElementById('nav-logout').style.display  = 'inline-flex';
+  document.getElementById('nav-explore').style.display = 'inline-flex';
+  document.getElementById('nav-dash').style.display    = 'inline-flex';
+  toast(`Welcome back, ${currentUser.name}!`);
+  showPage('courses-page');
+}
+
+function logout() {
+  token = ''; currentUser = null;
+  localStorage.removeItem('ef_token'); localStorage.removeItem('ef_user');
+  document.getElementById('nav-user').textContent = '';
+  ['nav-logout','nav-explore','nav-dash'].forEach(id => document.getElementById(id).style.display = 'none');
+  showPage('auth-page');
+  toast('Logged out successfully');
+}
+
+// ── COURSES ────────────────────────────────────────────────
+async function loadCourses(page = 1) {
+  currentPage = page;
+  const q    = document.getElementById('search-q')?.value || '';
+  const cat  = document.getElementById('filter-cat')?.value || '';
+  const lvl  = document.getElementById('filter-lvl')?.value || '';
+  const sort = document.getElementById('filter-sort')?.value || 'newest';
+  let url = `/courses?page=${page}&per_page=9&sort=${sort}`;
+  if (q)   url += `&q=${encodeURIComponent(q)}`;
+  if (cat) url += `&category=${cat}`;
+  if (lvl) url += `&level=${lvl}`;
+
+  const grid = document.getElementById('courses-grid');
+  grid.innerHTML = '<div class="loading-spin">Loading courses...</div>';
+  const { ok, data } = await api(url);
+  if (!ok) { grid.innerHTML = '<div class="empty"><p>Failed to load courses.</p></div>'; return; }
+
+  const courses = data.courses || [];
+  if (!courses.length) { grid.innerHTML = '<div class="empty"><p>No courses found. Try different filters.</p></div>'; return; }
+
+  grid.innerHTML = courses.map(c => `
+    <div class="course-card" onclick="openCourse(${c.id})">
+      <div class="course-thumb ${thumbClass(c.category)}">${thumbEmoji(c.category)}</div>
+      <div class="course-body">
+        <div class="course-title">${c.title}</div>
+        <div class="course-desc">${c.description || 'No description available.'}</div>
+        <div class="course-meta">
+          <span class="badge ${levelColor(c.level)}">${c.level}</span>
+          <span class="badge badge-blue">${c.category.replace('_',' ')}</span>
+          ${c.price === 0 ? '<span class="badge badge-free">Free</span>' : ''}
+        </div>
+        <div class="course-footer">
+          <div class="course-price">${c.price === 0 ? 'Free' : '₹' + c.price.toLocaleString()}</div>
+          <div>
+            <span class="course-rating">★ ${c.rating.toFixed(1)}</span>
+            <span style="font-size:11px;color:var(--gray);margin-left:6px">${c.enrollment_count} enrolled</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  // Pagination
+  const meta = data.meta;
+  const pg   = document.getElementById('pagination');
+  if (meta.pages > 1) {
+    pg.innerHTML = Array.from({length: meta.pages}, (_,i) => i+1)
+      .map(p => `<button onclick="loadCourses(${p})" style="margin:2px;padding:6px 12px;border-radius:6px;border:1.5px solid ${p===meta.page?'var(--blue)':'var(--border)'};background:${p===meta.page?'var(--blue)':'#fff'};color:${p===meta.page?'#fff':'var(--text)'};cursor:pointer">${p}</button>`)
+      .join('');
+  } else { pg.innerHTML = ''; }
+}
+
+// ── COURSE MODAL ───────────────────────────────────────────
+async function openCourse(id) {
+  document.getElementById('course-modal').classList.add('show');
+  document.getElementById('modal-content').innerHTML = '<div class="loading-spin">Loading...</div>';
+  const { ok, data } = await api(`/courses/${id}`);
+  if (!ok) { document.getElementById('modal-content').innerHTML = '<p>Failed to load.</p>'; return; }
+  const c = data;
+
+  const isOwner = currentUser && (currentUser.id === c.instructor.id || currentUser.role === 'admin');
+  const isLoggedIn = !!currentUser;
+
+  document.getElementById('modal-content').innerHTML = `
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px">
+      <div class="course-thumb ${thumbClass(c.category)}" style="width:56px;height:56px;border-radius:10px;font-size:24px;flex-shrink:0;display:flex;align-items:center;justify-content:center">${thumbEmoji(c.category)}</div>
+      <div><h2>${c.title}</h2><div style="font-size:13px;color:var(--gray);margin-top:2px">by ${c.instructor.name}</div></div>
+    </div>
+    <div class="modal-meta">
+      <span class="badge ${levelColor(c.level)}">${c.level}</span>
+      <span class="badge badge-blue">${c.category.replace('_',' ')}</span>
+      <span class="badge badge-amber">★ ${c.rating.toFixed(1)}</span>
+      <span class="badge badge-green">${c.total_lessons} lessons</span>
+      <span class="badge badge-purple">${c.enrollment_count} enrolled</span>
+    </div>
+    <p class="modal-desc">${c.description || 'No description available.'}</p>
+
+    ${c.ai_summary ? `
+    <div class="ai-box">
+      <h4>🤖 AI-Generated Summary</h4>
+      <p style="font-size:13px;color:#4c1d95;line-height:1.6">${c.ai_summary}</p>
+    </div>` : ''}
+
+    <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+      ${isLoggedIn ? `<button class="btn btn-primary" onclick="enrollCourse(${c.id})">Enroll Now — ${c.price === 0 ? 'Free' : '₹'+c.price}</button>` : '<button class="btn btn-outline" style="color:var(--navy);border-color:var(--border)" onclick="closeModal();showPage(\'auth-page\')">Login to Enroll</button>'}
+      ${isOwner ? `<button class="ai-generate-btn" id="ai-btn-${c.id}" onclick="generateAI(${c.id})">🤖 Generate AI Summary</button>` : ''}
+    </div>
+
+    <div class="modules-list">
+      <div style="font-size:14px;font-weight:600;color:var(--navy);margin-bottom:10px">Course Content</div>
+      ${(c.modules || []).map(m => `
+        <div class="module-item">
+          <div class="module-header">📁 ${m.title} <span style="font-size:12px;color:var(--gray);margin-left:auto">${m.lesson_count} lessons</span></div>
+          ${(m.lessons || []).map(l => `
+            <div class="lesson-item">
+              <span>${l.is_free ? '🔓' : '🔒'} ${l.title}</span>
+              <span class="dur">${l.duration} min</span>
+            </div>
+          `).join('')}
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function closeModal() {
+  document.getElementById('course-modal').classList.remove('show');
+}
+
+async function enrollCourse(id) {
+  if (!currentUser) { closeModal(); showPage('auth-page'); return; }
+  const { ok, data } = await api(`/courses/${id}/enroll`, { method: 'POST' });
+  if (ok) { toast('Enrolled successfully! 🎉'); closeModal(); }
+  else toast(data.message || 'Enrollment failed', 'error');
+}
+
+async function generateAI(id) {
+  const btn = document.getElementById(`ai-btn-${id}`);
+  btn.classList.add('loading'); btn.textContent = '🤖 Generating...';
+  const { ok, data } = await api(`/courses/${id}/ai-summary`, { method: 'POST' });
+  if (ok) {
+    toast(data.ai_powered ? 'AI summary generated with Gemini! 🤖' : 'Summary generated! Add Gemini key for AI summaries.');
+    openCourse(id);
+  } else {
+    toast(data.message || 'Failed', 'error');
+    btn.classList.remove('loading'); btn.textContent = '🤖 Generate AI Summary';
+  }
+}
+
+// ── DASHBOARD ──────────────────────────────────────────────
+function initDashboard() {
+  if (!currentUser) { showPage('auth-page'); return; }
+  document.getElementById('dash-greeting').textContent = `Welcome back, ${currentUser.name}!`;
+  document.getElementById('dash-role-label').textContent = `Role: ${currentUser.role} — ${new Date().toDateString()}`;
+
+  const isAdmin = currentUser.role === 'admin';
+  const isInstructor = currentUser.role === 'instructor' || isAdmin;
+  document.getElementById('sb-analytics').style.display  = isAdmin ? 'flex' : 'none';
+  document.getElementById('sb-create').style.display     = isInstructor ? 'flex' : 'none';
+
+  showDash('overview');
+}
+
+async function showDash(section) {
+  ['overview','my-courses','analytics','create-course'].forEach(s => {
+    document.getElementById(`dash-${s}`).style.display = s === section ? 'block' : 'none';
+    const sb = document.getElementById(`sb-${s}`);
+    if (sb) sb.classList.toggle('active', s === section);
+  });
+
+  if (section === 'overview')     loadOverview();
+  if (section === 'my-courses')   loadMyCourses();
+  if (section === 'analytics')    loadAnalytics();
+}
+
+async function loadOverview() {
+  const grid = document.getElementById('stats-grid');
+  if (currentUser.role === 'admin') {
+    const { ok, data } = await api('/analytics/dashboard');
+    if (!ok) return;
+    const o = data.overview;
+    grid.innerHTML = `
+      <div class="stat-card blue"><div class="stat-val">${o.total_users}</div><div class="stat-lbl">Total Users</div></div>
+      <div class="stat-card green"><div class="stat-val">${o.published_courses}</div><div class="stat-lbl">Published Courses</div></div>
+      <div class="stat-card amber"><div class="stat-val">${o.total_enrollments}</div><div class="stat-lbl">Total Enrollments</div></div>
+      <div class="stat-card purple"><div class="stat-val">${o.completion_rate_percent}%</div><div class="stat-lbl">Completion Rate</div></div>
+    `;
+    document.getElementById('top-courses-section').innerHTML = `
+      <div style="font-size:16px;font-weight:600;color:var(--navy);margin-bottom:12px">Top Courses</div>
+      ${data.top_courses.map((c,i) => `
+        <div style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin-bottom:8px;display:flex;align-items:center;gap:12px">
+          <div style="font-size:18px;font-weight:700;color:var(--gray);min-width:28px">#${i+1}</div>
+          <div style="flex:1;font-size:14px;font-weight:500">${c.title}</div>
+          <div class="badge badge-blue">${c.enrollments} enrolled</div>
+        </div>
+      `).join('')}
+    `;
+  } else if (currentUser.role === 'instructor') {
+    const { ok, data } = await api('/analytics/instructor-stats');
+    if (!ok) return;
+    grid.innerHTML = `
+      <div class="stat-card blue"><div class="stat-val">${data.total_courses}</div><div class="stat-lbl">My Courses</div></div>
+      <div class="stat-card green"><div class="stat-val">${data.published_courses}</div><div class="stat-lbl">Published</div></div>
+      <div class="stat-card amber"><div class="stat-val">${data.total_enrollments}</div><div class="stat-lbl">Total Students</div></div>
+    `;
+  } else {
+    const { ok, data } = await api('/analytics/my-stats');
+    if (!ok) return;
+    grid.innerHTML = `
+      <div class="stat-card blue"><div class="stat-val">${data.total_enrolled}</div><div class="stat-lbl">Enrolled Courses</div></div>
+      <div class="stat-card green"><div class="stat-val">${data.completed}</div><div class="stat-lbl">Completed</div></div>
+      <div class="stat-card amber"><div class="stat-val">${data.in_progress}</div><div class="stat-lbl">In Progress</div></div>
+    `;
+  }
+}
+
+async function loadMyCourses() {
+  const list = document.getElementById('my-courses-list');
+  list.innerHTML = '<div class="loading-spin">Loading...</div>';
+  const { ok, data } = await api('/users/my-courses');
+  if (!ok) { list.innerHTML = '<div class="empty"><p>Failed to load.</p></div>'; return; }
+  const enrs = data.enrollments || [];
+  if (!enrs.length) {
+    list.innerHTML = '<div class="empty"><p>You have not enrolled in any courses yet. <a href="#" onclick="showPage(\'courses-page\')" style="color:var(--blue)">Browse courses →</a></p></div>';
+    return;
+  }
+  list.innerHTML = enrs.map(e => `
+    <div class="my-course-card">
+      <div class="my-course-icon ${thumbClass('programming')}" style="background:linear-gradient(135deg,#1e3a8a,#2563eb)">📚</div>
+      <div class="my-course-info">
+        <div class="my-course-title">${e.course.title}</div>
+        <div class="my-course-meta">Enrolled ${new Date(e.enrolled_at).toLocaleDateString()} · ${e.progress_percent}% complete</div>
+        <div class="progress-wrap" style="margin-top:8px"><div class="progress-bar" style="width:${e.progress_percent}%"></div></div>
+      </div>
+      <div style="text-align:right">
+        ${e.completed ? '<span class="badge badge-green">Completed ✓</span>' : `<span style="font-size:13px;font-weight:600;color:var(--blue)">${e.progress_percent}%</span>`}
+      </div>
+    </div>
+  `).join('');
+}
+
+async function loadAnalytics() {
+  const el = document.getElementById('analytics-content');
+  const { ok, data } = await api('/analytics/dashboard');
+  if (!ok) { el.innerHTML = '<div class="empty"><p>Admin access required.</p></div>'; return; }
+  const o = data.overview;
+  el.innerHTML = `
+    <div class="stats-grid">
+      <div class="stat-card blue"><div class="stat-val">${o.total_users}</div><div class="stat-lbl">Total Users</div></div>
+      <div class="stat-card green"><div class="stat-val">${o.total_courses}</div><div class="stat-lbl">Total Courses</div></div>
+      <div class="stat-card amber"><div class="stat-val">${o.total_enrollments}</div><div class="stat-lbl">Enrollments</div></div>
+      <div class="stat-card purple"><div class="stat-val">${o.completion_rate_percent}%</div><div class="stat-lbl">Completion Rate</div></div>
+    </div>
+    <div style="font-size:16px;font-weight:600;color:var(--navy);margin:20px 0 12px">Most Popular Courses</div>
+    ${data.top_courses.map((c,i) => `
+      <div style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:14px 18px;margin-bottom:8px;display:flex;align-items:center;gap:14px">
+        <div style="font-size:20px;font-weight:700;color:var(--gray);min-width:32px">#${i+1}</div>
+        <div style="flex:1"><div style="font-size:14px;font-weight:600">${c.title}</div></div>
+        <div style="text-align:right"><span class="badge badge-blue">${c.enrollments} students</span></div>
+      </div>
+    `).join('')}
+  `;
+}
+
+async function createCourse() {
+  const title = document.getElementById('c-title').value.trim();
+  const desc  = document.getElementById('c-desc').value.trim();
+  const cat   = document.getElementById('c-cat').value;
+  const level = document.getElementById('c-level').value;
+  const price = parseFloat(document.getElementById('c-price').value) || 0;
+  const pub   = document.getElementById('c-pub').value === 'true';
+  if (!title) return showError('c-error','Course title is required');
+  const { ok, data } = await api('/courses', { method:'POST', body: JSON.stringify({ title, description:desc, category:cat, level, price, is_published:pub }) });
+  if (!ok) return showError('c-error', data.message || 'Failed to create course');
+  toast(`Course "${title}" created! 🎉`);
+  document.getElementById('c-title').value = '';
+  document.getElementById('c-desc').value  = '';
+  showDash('overview');
+}
+
+// ── INIT ───────────────────────────────────────────────────
+window.onclick = e => { if (e.target.id === 'course-modal') closeModal(); };
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+if (currentUser && token) {
+  onLogin();
+}
+</script>
+</body>
+</html>
